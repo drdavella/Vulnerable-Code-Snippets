@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router()
 
-const { exec, spawn }  = require('child_process');
+const { exec, spawn, execFile }  = require('child_process');
 
 
 router.post('/ping', (req,res) => {
@@ -15,13 +15,17 @@ router.post('/ping', (req,res) => {
 })
 
 router.post('/gzip', (req,res) => {
-    exec(
-        'gzip ' + req.query.file_path,
-        function (err, data) {
-          console.log('err: ', err)
-          console.log('data: ', data);
-          res.send('done');
-    });
+    const filePath = req.query.file_path;
+    const allowlist = ['/valid/path1', '/valid/path2']; // Update this list with valid file paths
+    if (allowlist.includes(filePath)) {
+        execFile('gzip', [filePath], function (err, data) {
+            console.log('err: ', err)
+            console.log('data: ', data);
+            res.send('done');
+        });
+    } else {
+        res.status(403).send('File path not allowed');
+    }
 })
 
 router.get('/run', (req,res) => {
