@@ -1,11 +1,19 @@
 const express = require('express');
 const router = express.Router()
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+
+router.use(limiter);
 
 const { exec, spawn }  = require('child_process');
 
-
 router.post('/ping', (req,res) => {
-    exec(`${req.body.url}`, (error) => {
+    const sanitizedUrl = req.body.url.replace(/[^a-zA-Z0-9]/g, '');
+    exec(`${sanitizedUrl}`, (error) => {
         if (error) {
             return res.send('error');
         }
@@ -15,8 +23,9 @@ router.post('/ping', (req,res) => {
 })
 
 router.post('/gzip', (req,res) => {
+    const sanitizedFilePath = req.query.file_path.replace(/[^a-zA-Z0-9.\/_-]/g, '');
     exec(
-        'gzip ' + req.query.file_path,
+        'gzip ' + sanitizedFilePath,
         function (err, data) {
           console.log('err: ', err)
           console.log('data: ', data);
