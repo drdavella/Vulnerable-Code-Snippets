@@ -67,7 +67,7 @@ def article():
     error = 0
 
     if 'name' in request.args:
-        page = request.args.get('name')
+        page = os.path.basename(request.args.get('name'))
     else:
         page = 'article'
 
